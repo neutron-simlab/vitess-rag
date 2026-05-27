@@ -9,9 +9,8 @@ Structure-aware RAG pipeline for VITESS documentation with semantic parsing, tab
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/Suparna-Das-89/vitess-rag-package
-cd vitess-rag-package
-```
+git clone https://github.com/neutron-simlab/vitess-rag.git
+cd vitess-rag
 
 ## 2. Install dependencies
 
@@ -327,7 +326,7 @@ The agent layer supports:
 # Project Structure
 
 ```text
-vitess-rag-package/
+vitess-rag/
 │
 ├── data/
 │   ├── filter.md
@@ -375,6 +374,35 @@ Available commands:
 ```bash
 vitess-rag index
 vitess-rag ask
+```
+
+---
+
+# Programmatic Usage
+
+After installing the package (`uv sync`), import from the `vitess_rag` module:
+
+```python
+from vitess_rag.agent import ask_hybrid_agent
+from vitess_rag.chroma import get_or_create_collection
+from vitess_rag.embeddings import BlabladorEmbeddingFunction
+
+embedding_function = BlabladorEmbeddingFunction()
+collection = get_or_create_collection(
+    persist_path="chroma_db",
+    collection_name="vitess_docs_blablador_v3",
+    embedding_function=embedding_function,
+    recreate=False,
+)
+answer = ask_hybrid_agent(query="What does option -z mean?", collection=collection)
+```
+
+Other commonly used imports:
+
+```python
+from vitess_rag.agent import build_vitess_research_agent
+from vitess_rag.chroma import index_markdown_directory
+from vitess_rag.parser import parse_markdown_document
 ```
 
 ---
@@ -437,8 +465,8 @@ Current tests include:
 Verified from a clean clone:
 
 ```bash
-git clone https://github.com/Suparna-Das-89/vitess-rag-package.git
-cd vitess-rag-package
+git clone https://github.com/neutron-simlab/vitess-rag.git
+cd vitess-rag
 
 uv sync
 

@@ -22,9 +22,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest",
-  "pytest-cov",
-  "pytest-mock",
-  "ipython",
 ]
 
 # This makes the CLI command work
