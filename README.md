@@ -34,7 +34,7 @@ Create a `.env` file in the project root:
 BLABLADOR_API_KEY=your_api_key_here
 BLABLADOR_BASE_URL=https://api.helmholtz-blablador.fz-juelich.de/v1/
 VITESS_AGENT_MODEL=alias-large
-BLABLADOR_EMBEDDING_MODEL=alias-embeddings
+BLABLADOR_EMBEDDING_MODEL=alias-qwen3-8b-embeddings
 ```
 
 ---
@@ -48,8 +48,8 @@ uv run vitess-rag index
 Expected output:
 
 ```text
-Indexed chunks: 384
-Collection count: 384
+Indexed chunks: 394
+Collection count: 394
 ```
 
 ---
@@ -330,6 +330,7 @@ The agent layer supports:
 vitess-rag/
 │
 ├── data/
+│   ├── capture_flux.md
 │   ├── filter.md
 │   ├── guide.md
 │   ├── monitor.md
