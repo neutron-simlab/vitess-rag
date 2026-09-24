@@ -36,7 +36,58 @@ def create_vitess_tools(collection):
         Specialized lookup for command-line options like -z, -A, -H, -V.
         Use this when the user asks what an option means.
         """
-        docs, metas = retrieve_candidates(query, collection, n_results=50)
+
+        target_option = re.search(r"-[A-Za-z]", query)
+
+        if not target_option:
+            return "NO_OPTION_FOUND"
+
+        option = target_option.group(0)
+
+        # First, perform an exact lookup over indexed metadata.
+        results = collection.get(
+            include=["documents", "metadatas"],
+        )
+
+        documents = results.get("documents", [])
+        metadatas = results.get("metadatas", [])
+
+        exact_hits = []
+
+        for doc, meta in zip(documents, metadatas):
+            row_cmd = str(meta.get("row_command_option", "")).strip()
+
+            if not row_cmd:
+                continue
+
+            options_in_row = re.findall(r"-[A-Za-z]", row_cmd)
+
+            if option in options_in_row:
+                exact_hits.append((0, meta, doc))
+
+        if exact_hits:
+            exact_docs = [doc for _, _, doc in exact_hits]
+            exact_metas = [meta for _, meta, _ in exact_hits]
+
+            ranked = rerank_results(
+                query,
+                exact_docs,
+                exact_metas,
+            )
+
+            ambiguity = detect_ambiguity(query, ranked)
+
+            if ambiguity:
+                return f"AMBIGUOUS_QUERY\n{ambiguity}"
+
+            return build_context(ranked[:5])
+
+        # Fallback: use semantic retrieval if no exact option match was found.
+        docs, metas = retrieve_candidates(
+            query,
+            collection,
+            n_results=50,
+        )
 
         if not docs:
             return "NO_RESULTS"
@@ -44,26 +95,12 @@ def create_vitess_tools(collection):
         ranked = rerank_results(query, docs, metas)
 
         ambiguity = detect_ambiguity(query, ranked)
+
         if ambiguity:
             return f"AMBIGUOUS_QUERY\n{ambiguity}"
 
-        target_option = re.search(r"-[A-Za-z]", query)
-        exact_hits = []
-
-        if target_option:
-            option = target_option.group(0)
-
-            for score, meta, doc in ranked:
-                row_cmd = str(meta.get("row_command_option", "")).strip()
-                options_in_row = re.findall(r"-[A-Za-z]", row_cmd)
-
-                if option in options_in_row:
-                    exact_hits.append((score, meta, doc))
-
-        if exact_hits:
-            return build_context(exact_hits[:5])
-
         return build_context(ranked[:5])
+
 
     @tool
     def vitess_module_lookup(query: str) -> str:
