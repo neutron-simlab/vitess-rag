@@ -252,7 +252,8 @@ Implemented retrieval stages include:
 * query normalization
 * command-option extraction
 * module hint detection
-* candidate retrieval
+* exact metadata lookup for command-option queries
+* semantic candidate retrieval
 * metadata-aware reranking
 * ambiguity detection
 * context construction
@@ -275,13 +276,15 @@ When multiple valid meanings exist for a command option, the retrieval layer gen
 Example:
 
 ```text
-The option `-z` has different meanings depending on the specific VITESS module you are using. It generally refers to a vertical position filter (in cm):
+The option `-z` is ambiguous in VITESS — its meaning depends on the module. Please specify which module you're asking about:
 
-*   Filter Module: Sets the minimum z (lower bound of the filter range in the vertical direction).
-*   Monitor Module: Defines the low and up bounds for the z-position (minimal and maximal vertical position). Note: In some contexts, it may also refer to wavelength bounds, but the primary definition is position.
-*   Writeout Module: Specifies the minimum and maximum Z position** to filter neutrons; only neutrons within this vertical space range are read.
+- **Filter**: min. z [cm] (lower bound of filter range in vertical direction)
+- **Guide**: first absorption material
+- **CaptureFlux**: center y/center z [cm] for circular foil
+- **Monitor**: filter Z pos min/max, number of y-/z-bins, or low/up bound z-pos [cm]
+- **Writeout**: filter Z pos. min/max [cm]
 
-Please specify which module you are using if you need a more precise definition.
+Which module should I look up?
 ```
 
 ---
@@ -355,10 +358,12 @@ vitess-rag/
 │
 ├── tests/
 │   ├── __init__.py
+│   ├── test_agent.py
 │   ├── test_chroma.py
 │   ├── test_embeddings.py
 │   ├── test_parser.py
 │   └── test_retrieval.py
+│   └── test_tools.py
 │
 ├── .env.example
 ├── .gitignore
@@ -459,6 +464,9 @@ Current tests include:
 * reranking
 * ambiguity detection
 * embedding validation
+* agent behavior
+* retrieval tool behavior
+* exact command-option lookup
 
 ---
 
