@@ -19,6 +19,7 @@ The **screen** gives directly an output file of the intensity distribution over 
 | height  [cm] | Height of the detector, both for the rectangular and the banana shaped detector | > 0, e.g. 50 | -h |
 | width  [cm] | Width of the rectangular detector. (Not used for the cylindrical detector geometry) | > 0, e.g. 300 | -w |
 | distance  [cm] | Distance from the center of the detector area to the origin (0,0,0), i.e. the sample center. In case of a cylindrical detector, this is the cylinder radius. | > 0, e.g. 100 | -D |
-| min. angle <br>max. angle  [deg] | Angular range covered by a cylindrical or banana shaped detector (Not used for the rectangular detector geometry). | -180° - 180° | -a <br>-A |
+| min. angle  [deg] | Angular range covered by a cylindrical or banana shaped detector (Not used for the rectangular detector geometry). | -180° - 180° | -a |
+| max. angle  [deg] | Angular range covered by a cylindrical or banana shaped detector (Not used for the rectangular detector geometry). | -180° - 180° | -A |
 | number of rows | Number of channels partitioning the detector height = number of vertical bins in the 2D monitor | ≥ 1 | -z |
 | number of columns | Number of channels partitioning the detector width = number of horizontal bins in the 2D monitor | ≥ 1 | -y |
