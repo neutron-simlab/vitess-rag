@@ -39,7 +39,7 @@ def extract_module_hint(query: str, metas) -> Optional[str]:
                     candidates.add(word)
 
     for candidate in sorted(candidates, key=len, reverse=True):
-        if candidate in q:
+        if re.search(rf"\b{re.escape(candidate)}\b", q):
             return candidate
 
     return None
