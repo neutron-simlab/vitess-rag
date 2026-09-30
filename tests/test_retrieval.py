@@ -30,6 +30,7 @@ def test_extract_module_hint():
     ]
 
     assert extract_module_hint("tell me about filter", metas) == "filter"
+    assert extract_module_hint("tell me about filtering", metas) is None
 
 
 def test_rerank_results_boosts_exact_command_option():

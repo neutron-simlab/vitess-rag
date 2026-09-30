@@ -1,3 +1,5 @@
+import pytest
+
 from vitess_rag.tools import create_vitess_tools
 
 
@@ -116,6 +118,50 @@ def get_option_tool(collection):
         tool for tool in tools
         if tool.name == "vitess_option_lookup"
     )
+
+
+class ScopedCollection:
+    def get(self, include=None):
+        # Enough unrelated single-flag rows to push the requested shared row
+        # out of the five returned chunks under the old ranking.
+        metas = [
+            {"module": "Monitor", "source_file": "monitor.md",
+             "row_command_option": flag, "chunk_type": "table"}
+            for flag in ("-m", "-M", "-e", "-E") for _ in range(6)
+        ] + [
+            {"module": "eval_elast", "source_file": "eval_elast.md",
+             "row_command_option": flags, "chunk_type": "table"}
+            for flags in ("-m -M", "-e -E")
+        ]
+        return {"documents": [str(meta) for meta in metas], "metadatas": metas}
+
+    def query(self, **kwargs):
+        raise AssertionError("An exact flag lookup must not need embeddings")
+
+
+@pytest.mark.parametrize("flag", ["-m", "-M", "-e", "-E"])
+def test_named_module_is_a_filter_even_when_its_row_has_multiple_flags(flag):
+    result = get_option_tool(ScopedCollection()).invoke(
+        {"query": f"What does option {flag} mean in module eval_elast?"}
+    )
+
+    assert "source_file: eval_elast.md" in result
+    assert "source_file: monitor.md" not in result
+
+
+def test_missing_flag_in_named_module_does_not_answer_from_another_module():
+    result = get_option_tool(FakeCollection()).invoke(
+        {"query": "What does option -Y mean in module filter?"}
+    )
+
+    assert result == "NO_RESULTS"
+
+
+def test_unscoped_shared_flag_still_requests_a_module():
+    result = get_option_tool(ScopedCollection()).invoke({"query": "What does -e mean?"})
+
+    assert result.startswith("AMBIGUOUS_QUERY")
+    assert "Monitor" in result and "eval_elast" in result
 
 
 def test_option_lookup_finds_lowercase_z_inside_multi_option_rows():

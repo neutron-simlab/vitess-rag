@@ -5,6 +5,7 @@ from langchain.tools import tool
 from .retrieval import (
     build_context,
     detect_ambiguity,
+    extract_module_hint,
     rerank_results,
     retrieve_candidates,
 )
@@ -51,10 +52,18 @@ def create_vitess_tools(collection):
 
         documents = results.get("documents", [])
         metadatas = results.get("metadatas", [])
+        module_hint = extract_module_hint(query, metadatas)
 
         exact_hits = []
 
         for doc, meta in zip(documents, metadatas):
+            # A named module constrains the lookup. A single-flag row from a
+            # different module must not outrank this module's shared flag row.
+            if module_hint and not any(
+                re.search(rf"\b{re.escape(module_hint)}\b", str(meta.get(field, "")), re.I)
+                for field in ("module", "section", "subsection", "subsubsection", "source_file", "path")
+            ):
+                continue
             row_cmd = str(meta.get("row_command_option", "")).strip()
 
             if not row_cmd:
@@ -81,6 +90,9 @@ def create_vitess_tools(collection):
                 return f"AMBIGUOUS_QUERY\n{ambiguity}"
 
             return build_context(ranked[:5])
+
+        if module_hint:
+            return "NO_RESULTS"
 
         # Fallback: use semantic retrieval if no exact option match was found.
         docs, metas = retrieve_candidates(
